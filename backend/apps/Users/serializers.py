@@ -108,6 +108,7 @@ class LoginSerializer(serializers.Serializer):
         identifier = attrs.get("identifier")
         password = attrs.get("password")
         user = authenticate(username=identifier, password=password)
+        roles = list(user.groups.values_list("name", flat=True))
 
         if user is None and "@" in identifier:
             try:
@@ -123,12 +124,10 @@ class LoginSerializer(serializers.Serializer):
 
         refresh = RefreshToken.for_user(user)
         roles = list(user.groups.values_list("name", flat=True))
-        if hasattr(user, "student_profile") and user.student_profile.is_org_officer:
-            roles.append("org_officer")
 
         # Implement custom permissions
-        role_priority = ["admin","faculty","staff","student"]
-        primary_role = next((r for r in role_priority if r in roles), None)
+        ROLE_PRIORITY = ["admin", "faculty", "staff", "org_officer", "student"]
+        primary_role = next((r for r in ROLE_PRIORITY if r in roles), None)
 
         return {
             "user": user,
@@ -136,26 +135,3 @@ class LoginSerializer(serializers.Serializer):
             "roles": roles,
             "primary_role": primary_role,
         }
-    
-
-
-# Serializers for Organizxation models
-from rest_framework import serializers
-from .models import Organization, OrgMembership
-
-class OrganizationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organization
-        fields = ["id", "name", "description", "adviser"]
-
-
-class OrgMembershipSerializer(serializers.ModelSerializer):
-    organization_detail = OrganizationSerializer(source="organization", read_only=True)
-
-    class Meta:
-        model = OrgMembership
-        fields = [
-            "id", "student", "organization", "organization_detail",
-            "role", "position_title",
-            "start_date", "end_date", "is_active"
-        ]

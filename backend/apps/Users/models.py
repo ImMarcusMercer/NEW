@@ -73,38 +73,3 @@ class StaffProfile(models.Model):
 
     def __str__(self):
         return f"StaffProfile<{self.user_id}>"
-
-
-# Organiztional Models / for subroles (Proposed approach)
-class Organization(models.Model):
-    name        = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True)
-    adviser     = models.ForeignKey("FacultyProfile", on_delete=models.SET_NULL, null=True, blank=True)
-
-class OrgMembership(models.Model):
-    """sample membership model (change if needed)"""
-    ROLE_CHOICES = [
-        ("member",  "Member"),
-        ("officer", "Officer"),
-        ("pres",    "President"),
-        ("vp",      "Vice President"),
-        ("sec",     "Secretary"),
-        ("treas",   "Treasurer"),
-    ]
-    student      = models.ForeignKey("StudentProfile", on_delete=models.CASCADE, related_name="org_memberships")
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="memberships")
-    role         = models.CharField(max_length=16, choices=ROLE_CHOICES, default="member")
-    position_title = models.CharField(max_length=80, blank=True)
-    start_date   = models.DateField(null=True, blank=True)
-    end_date     = models.DateField(null=True, blank=True)
-    is_active    = models.BooleanField(default=True)
-
-
-    # no two rows in the table can have the same values for all those fields at once.
-    # ensure no duplicate role with the same student
-    class Meta:
-        unique_together = [("student", "organization", "role", "is_active")]
-
-@property
-def is_org_officer(self):
-    return self.org_memberships.filter(is_active=True).exclude(role="member").exists()

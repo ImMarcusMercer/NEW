@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         #     primary_role=result.primary_role,
         #     token=result.token
         # )
-        if result.primary_role=="student":
+        if result.primary_role=="student" or result.primary_role=="org_officer":
             self.dashboard=StudentDashboard(username=result.username, roles=result.roles,primary_role=result.primary_role,token=result.token)
             self.dashboard.show()
             self.close()

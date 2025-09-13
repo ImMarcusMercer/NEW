@@ -143,3 +143,24 @@ class UserRegistrationAPIView(APIView):
             "username": user.username,
             "email": user.email
         }, status=status.HTTP_201_CREATED)
+    
+# Method na admin ra makagamit or some sort
+from .services import OrgOfficer
+
+User = get_user_model()
+
+class PromoteToOfficerAPIView(APIView):
+    permission_classes = [permissions.IsAdminUser]  # Ensure signed user is an admin 
+
+    def post(self, request, user_id):
+        user = User.objects.get(pk=user_id)
+        OrgOfficer.grant_org_officer(user)
+        return Response({"message": "User promoted to org_officer"}, status=200)
+
+class DemoteOfficerAPIView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, user_id):
+        user = User.objects.get(pk=user_id)
+        OrgOfficer.revoke_org_officer(user)
+        return Response({"message": "User removed from org_officer"}, status=200)
