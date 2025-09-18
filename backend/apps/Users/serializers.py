@@ -135,3 +135,19 @@ class LoginSerializer(serializers.Serializer):
             "roles": roles,
             "primary_role": primary_role,
         }
+    
+
+class AdminUserListSerializer(serializers.ModelSerializer):
+    # show group names as a comma-join-friendly list
+    groups = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "email",
+            "first_name", "last_name",
+            "is_active", "is_staff", "is_superuser",
+            "groups",
+        ]

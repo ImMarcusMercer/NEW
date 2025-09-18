@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status,permissions
+from rest_framework import status,permissions, viewsets, filters
 from django.contrib.auth import authenticate,get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -150,11 +150,11 @@ from .services import OrgOfficer
 User = get_user_model()
 
 class PromoteToOfficerAPIView(APIView):
-    permission_classes = [permissions.IsAdminUser]  # Ensure signed user is an admin 
+    permission_classes = [permissions.IsAdminUser]
 
     def post(self, request, user_id):
         user = User.objects.get(pk=user_id)
-        OrgOfficer.grant_org_officer(user)
+        OrgOfficer.grant(user)
         return Response({"message": "User promoted to org_officer"}, status=200)
 
 class DemoteOfficerAPIView(APIView):
@@ -162,5 +162,19 @@ class DemoteOfficerAPIView(APIView):
 
     def post(self, request, user_id):
         user = User.objects.get(pk=user_id)
-        OrgOfficer.revoke_org_officer(user)
+        OrgOfficer.revoke(user)
         return Response({"message": "User removed from org_officer"}, status=200)
+    
+from .serializers import AdminUserListSerializer
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /api/users/        -> list users
+    GET /api/users/{id}/   -> retrieve user
+    (read-only for now; you already have promote/demote endpoints)
+    """
+    queryset = User.objects.all().order_by("id")
+    serializer_class = AdminUserListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["username", "email", "first_name", "last_name"]
+    ordering_fields = ["id", "username", "email", "first_name", "last_name"]

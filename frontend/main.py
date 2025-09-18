@@ -5,6 +5,7 @@ from services.auth_service import AuthService
 from ui.Login.StudentDashboard import StudentDashboard
 from ui.Login.FacultyDashboard import FacultyDashboard
 from ui.Login.StaffDashboard import StaffDashboard
+from ui.Login.AdminDashboard import AdminDashboard
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -40,6 +41,12 @@ class MainWindow(QMainWindow):
             self.dashboard=FacultyDashboard(username=result.username, roles=result.roles,primary_role=result.primary_role,token=result.token)
             self.dashboard.show()
             self.close()
+
+        elif result.primary_role=="admin":
+            self.dashboard=AdminDashboard(username=result.username, roles=result.roles,primary_role=result.primary_role,token=result.token)
+            self.dashboard.show()
+            self.close()
+
         # elif result.roles=="student":
         #     self.dashboard=StudentDashboard(username=result.username, roles=result.roles,primary_role=result.primary_role,token=result.token)
         
