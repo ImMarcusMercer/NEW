@@ -31,17 +31,20 @@ def assign_role(identifier, new_role):
     # # Assign a role
     u.groups.add(Group.objects.get(name=new_role))
 #==============================Start of Script==============================
-admin = User.objects.create_superuser(
-    username="admin",
-    email="admin@cmu.edu.ph",
-    password="admin123",
-    first_name="System",
-    last_name="Administrator",
-    institutional_id="100100100",
-    role_type="admin"
-)
-assign_role("admin", "admin")
-user1 = User.objects.create_user(
+if not User.objects.filter(username="admin").exists():
+    User.objects.create_superuser(
+        username="admin",
+        email="admin@cmu.edu.ph",
+        password="admin123",
+        institutional_id="ADM-0001",
+        role_type="admin"
+    )
+    assign_role("admin","admin")
+    print("Admin superuser created")
+else:
+    print("Admin already exists")
+if not User.objects.filter(username="Adolf").exists():
+    user1 = User.objects.create_user(
     username="Adolf",
     email="adolfhitler@cmu.edu.ph",
     password="password123",
@@ -49,8 +52,31 @@ user1 = User.objects.create_user(
     last_name="Hitler",
     institutional_id="456456456",
     role_type="student",
-)
-user2 = User.objects.create_user(
+    )
+    assign_role("Adolf", "student")
+
+    #DEfault program and section, for example rani
+    prog, _ = Program.objects.get_or_create(program_name="BS IT")
+    sec, _  = Section.objects.get_or_create(section_name="IT-1A")
+    #then create a student profile
+    sp1 = StudentProfile.objects.create(
+        user=user1,
+        program=prog,
+        section=sec,
+        year_level=1,
+        indiv_points=0,
+    )
+    print(f"Account {user1.get_username()} created")
+else:
+    print("Account already exists. Aborting creation...")
+
+    
+# Default Positions
+pos1, _ =Position.objects.get_or_create(position_name="Instructor 1")
+#Default Department
+dep1, _ =FacultyDepartment.objects.get_or_create(department_name="CISC")
+if not User.objects.filter(username="Donald").exists():
+    user2 = User.objects.create_user(
     username="Donald",
     email="donaldtrump@cmu.edu.ph",
     password="password123",
@@ -58,9 +84,21 @@ user2 = User.objects.create_user(
     last_name="Trump",
     institutional_id="123123123",
     role_type="staff",
-)
-assign_role("Donald", "staff")
-user3 = User.objects.create_user(
+    )
+    assign_role("Donald", "staff")
+
+    # Create Staff(Registrar)
+    staff1= StaffProfile.objects.create(
+        user=user2,
+        faculty_department=dep1,
+        job_title="registrar"
+    )
+    print(f"Account {user2.get_username()} created")
+else:
+    print("Account already exists. Aborting creation...")
+    
+if not User.objects.filter(username="Kim").exists():
+    user3 = User.objects.create_user(
     username="Kim",
     email="kimjongun@cmu.edu.ph",
     password="password123",
@@ -68,44 +106,24 @@ user3 = User.objects.create_user(
     last_name="Jong Un",
     institutional_id="789789789",
     role_type="faculty",
-)
-assign_role("Kim", "faculty")
-
-#DEfault program and section, for example rani
-prog, _ = Program.objects.get_or_create(program_name="BS IT")
-sec, _  = Section.objects.get_or_create(section_name="IT-1A")
-# Default Positions
-pos1, _ =Position.objects.get_or_create(position_name="Instructor 1")
-#Default Department
-dep1, _ =FacultyDepartment.objects.get_or_create(department_name="CISC")
-
-#then create a student profile
-sp1 = StudentProfile.objects.create(
-    user=user1,
-    program=prog,
-    section=sec,
-    year_level=1,
-    indiv_points=0,
-)
-# Create Staff(Registrar)
-staff1= StaffProfile.objects.create(
-    user=user2,
-    faculty_department=dep1,
-    job_title="registrar"
-)
-# Create faculty(Instructor 1)
-Fac1= FacultyProfile.objects.create(
-    user=user3,
-    faculty_department=dep1,
-    position= pos1,
-    hire_date= date(2001, 9,11),
-)
+    )
+    assign_role("Kim", "faculty")
+    # Create faculty(Instructor 1)
+    Fac1= FacultyProfile.objects.create(
+        user=user3,
+        faculty_department=dep1,
+        position= pos1,
+        hire_date= date(2001, 9,11),
+    )
+    print(f"Account {user3.get_username()} created")
+else:
+    print("Account already exists. Aborting creation...")
 
 # Verify creation
-for ident in ("Adolf", "Donald", "Kim"):
+for ident in ("admin","Adolf", "Donald", "Kim"):
     u = get_user(ident)
     if u:
-        print(f"Successfully created {u.get_username()} (id={u.id})")
+        print(f"Verified creation for Username: {u.get_username()} ID: {u.id}")
     else:
         print(f"User {ident} not found")
 #==============================End of Script==============================

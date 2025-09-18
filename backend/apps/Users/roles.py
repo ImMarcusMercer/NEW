@@ -3,7 +3,6 @@ from django.contrib.auth.models import Group
 
 ROLES = [
     "student",
-    "org_officer",
     "faculty",
     "staff",
     "admin",

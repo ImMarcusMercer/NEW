@@ -145,7 +145,7 @@ class UserRegistrationAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
     
 # Method na admin ra makagamit or some sort
-from .services import OrgOfficer
+from .services import OrgOfficer, Registrar
 
 User = get_user_model()
 
@@ -165,13 +165,21 @@ class DemoteOfficerAPIView(APIView):
         OrgOfficer.revoke(user)
         return Response({"message": "User removed from org_officer"}, status=200)
     
+class PromoteRegistrarAPIView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    def post(self, request, user_id):
+        user= User.objects.get(pk=user_id)
+        Registrar.grant(user)
+        return Response({"message": "User promoted to Registrar"}, status=200)
+class DemoteRegistrarAPIView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    def post(self, request, user_id):
+        user= User.objects.get(pk=user_id)
+        Registrar.revoke(user)
+        return Response({"message": "User retired from Registrar"}, status=200)
+    
 from .serializers import AdminUserListSerializer
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    GET /api/users/        -> list users
-    GET /api/users/{id}/   -> retrieve user
-    (read-only for now; you already have promote/demote endpoints)
-    """
     queryset = User.objects.all().order_by("id")
     serializer_class = AdminUserListSerializer
     permission_classes = [permissions.IsAuthenticated]

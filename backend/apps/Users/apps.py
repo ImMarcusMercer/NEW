@@ -8,7 +8,7 @@ class UsersConfig(AppConfig):
 
     def ready(self):
         # import signals
-        from . import signals  # noqa: F401
+        from . import signals
 
         # ensure roles exist
         from .roles import ensure_roles

@@ -15,9 +15,12 @@ class AdminDashboard(QWidget):
 
         # ---- config your API base + endpoints here ----
         self.api_base = "http://127.0.0.1:8000/api/"
-        self.users_url = self.api_base + "users/"  # expects DRF list endpoint returning users
+        self.users_url = self.api_base + "users/"
         self.promote_url_tmpl = self.api_base +"users/" + "roles/org-officer/{user_id}/promote/"
         self.demote_url_tmpl  = self.api_base +"users/" + "roles/org-officer/{user_id}/demote/"
+        self.promote_registrar = self.api_base +"users/" + "roles/registrar/{user_id}/promote/"
+        self.demote_registrar = self.api_base +"users/" + "roles/registrar/{user_id}/demote/"
+
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
         self.setWindowTitle("Dashboard")
@@ -40,10 +43,14 @@ class AdminDashboard(QWidget):
         # Buttons
         btns = QHBoxLayout()
         self.refresh_btn = QPushButton("Refresh")
+        self.add_registrar=QPushButton("Promote to Registrar")
+        self.remove_registrar=QPushButton("Retire from Registrar")
         self.promote_btn = QPushButton("Promote to org_officer")
         self.demote_btn  = QPushButton("Remove org_officer")
         btns.addWidget(self.refresh_btn)
         btns.addStretch()
+        btns.addWidget(self.add_registrar)
+        btns.addWidget(self.remove_registrar)
         btns.addWidget(self.promote_btn)
         btns.addWidget(self.demote_btn)
 
@@ -55,6 +62,8 @@ class AdminDashboard(QWidget):
 
         # Signals
         self.refresh_btn.clicked.connect(self.load_users)
+        self.add_registrar.clicked.connect(lambda: self.change_Registrar(True))
+        self.remove_registrar.clicked.connect(lambda: self.change_Registrar(False))
         self.promote_btn.clicked.connect(lambda: self.change_officer(True))
         self.demote_btn.clicked.connect(lambda: self.change_officer(False))
 
@@ -128,6 +137,32 @@ class AdminDashboard(QWidget):
         row = rows[0].row()
         item = self.table.item(row, 0)
         return item.data(Qt.ItemDataRole.UserRole)
+    def change_Registrar(self, promote):
+        user_id = self.selected_user_id()
+        if user_id is None:
+            return
+        url = (self.promote_registrar if promote else self.demote_registrar).format(user_id=user_id)
+        try:
+            r = requests.post(url, headers=self.headers, timeout=10)
+            if r.status_code not in (200, 201):
+                return self._error(f"Role change failed: HTTP {r.status_code} {r.text[:200]}")
+            self._info(r.json().get("message", "Success"))
+            self.load_users()
+        except requests.RequestException as e:
+            self._error(f"Cannot reach backend: {e}")
+    # def removeRegistrar(self, promote):
+    #     user_id = self.selected_user_id()
+    #     if user_id is None:
+    #         return
+    #     url = (self.promote_registrar if promote else self.demote_registrar).format(user_id=user_id)
+    #     try:
+    #         r = requests.post(url, headers=self.headers, timeout=10)
+    #         if r.status_code not in (200, 201):
+    #             return self._error(f"Role change failed: HTTP {r.status_code} {r.text[:200]}")
+    #         self._info(r.json().get("message", "Success"))
+    #         self.load_users()
+    #     except requests.RequestException as e:
+    #         self._error(f"Cannot reach backend: {e}")
 
     def change_officer(self, promote: bool):
         user_id = self.selected_user_id()
